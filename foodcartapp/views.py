@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Order, OrderProduct, Product
 
@@ -69,7 +70,19 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     order_details = request.data
-    print(order_details)
+    if 'products' not in order_details:
+        return Response({'error': 'products: Обязательное поле.'})
+    elif not order_details['products'] and isinstance(order_details['products'], list):
+        return Response({'error': 'products: Этот список не может быть пустым.'})
+    elif not order_details['products']:
+        return Response({'error': 'Поле products не может быть пустым.'})
+    elif not isinstance(order_details['products'], list):
+        return Response(
+            {
+                'error': f'Ожидался list со значениями, но был получен '
+                         f'{type(order_details["products"])}.'
+            }
+        )
     order, created = Order.objects.get_or_create(
         phone_number=order_details['phonenumber'],
         defaults={
