@@ -1,11 +1,10 @@
 import logging
 
-import requests
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
-from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework.decorators import api_view
+from rest_framework import serializers
 from rest_framework.response import Response
 
 from .models import Order, OrderProduct, Product
@@ -69,64 +68,54 @@ def product_list_api(request):
     })
 
 
+class OrderProductSerializer(serializers.ModelSerializer):
+    product = serializers.IntegerField(min_value=1)
+    quantity = serializers.IntegerField(source='amount', min_value=1)
+
+    class Meta:
+        model = OrderProduct
+        fields = ['product', 'quantity']
+
+    def validate_product(self, value):
+        if not Product.objects.filter(id=value).exists():
+            raise serializers.ValidationError(
+                f'product_id: нет продукта с id = {value}.'
+            )
+        return value
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    products = OrderProductSerializer(many=True, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
 @api_view(['POST'])
 def register_order(request):
-    order_details = request.data
-
-    if 'products' not in order_details:
-        return Response({'error': 'products: Обязательное поле.'})
-    elif not order_details['products'] and isinstance(order_details['products'], list):
-        return Response({'error': 'products: Этот список не может быть пустым.'})
-    elif not order_details['products']:
-        return Response({'error': 'Поле products не может быть пустым.'})
-    elif not isinstance(order_details['products'], list):
-        return Response(
-            {
-                'error': f'Ожидался list со значениями, но был получен '
-                         f'{type(order_details["products"])}.'
-            }
-        )
-    if not ('firstname' in order_details or 'lastname' in order_details or 'phonenumber' in order_details or 'address' in order_details):
-        return Response({'error': 'firstname, lastname, phonenumber, address: Обязательное поле.'})
-    if not order_details['firstname'] and not order_details['lastname'] and not order_details['phonenumber'] and not order_details['address']:
-        return Response({'error': 'firstname, lastname, phonenumber, address: Это поле не может быть пустым.'})
-    if not isinstance(order_details['firstname'], str):
-        return Response({'error': 'firstname: Not a valid string.'})
-    if not order_details['phonenumber']:
-        return Response({'error': 'phonenumber: Это поле не может быть пустым.'})
-    if not order_details['firstname']:
-        return Response({'error': 'firstname: Это поле не может быть пустым.'})
-
-    number = PhoneNumber.from_string(order_details['phonenumber'])
-    if not number.is_valid():
-        return Response({'error': 'phonenumber: Введен некорректный номер телефона.'})
-
-    for product_id in [product['product'] for product in order_details['products']]:
-        try:
-            product = get_object_or_404(Product, id=product_id)
-        except Exception:
-            return Response({'error': f'products: Недопустимый первичный ключ {product_id}'})
-
+    order = serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     order, created = Order.objects.get_or_create(
-        phone_number=order_details['phonenumber'],
+        phonenumber=serializer.validated_data['phonenumber'],
         defaults={
-            'first_name': order_details['firstname'],
-            'last_name': order_details['lastname'],
-            'address': order_details['address']
+            'firstname': serializer.validated_data['firstname'],
+            'lastname': serializer.validated_data['lastname'],
+            'address': serializer.validated_data['address']
         }
     )
     if created:
         logging.info(f'Order {order.id} is created')
-        products = order_details['products']
+        products = serializer.validated_data['products']
         for product in products:
             product_in_order, created = OrderProduct.objects.get_or_create(
                 product=get_object_or_404(Product, id=product['product']),
-                order=Order.objects.get(id=order.id),
-                amount=product['quantity'],
+                order=order,
+                amount=product['amount'],
             )
             if created:
                 logging.info(
                     f'{product_in_order.product.name} added to order '
                     f'{product_in_order.order.id}'
                 )
-    return JsonResponse({})
+    return Response({'order_id': order.id, })
