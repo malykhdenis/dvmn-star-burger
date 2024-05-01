@@ -1,8 +1,10 @@
 import logging
 
+import requests
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
+from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -70,6 +72,7 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     order_details = request.data
+
     if 'products' not in order_details:
         return Response({'error': 'products: Обязательное поле.'})
     elif not order_details['products'] and isinstance(order_details['products'], list):
@@ -83,6 +86,27 @@ def register_order(request):
                          f'{type(order_details["products"])}.'
             }
         )
+    if not ('firstname' in order_details or 'lastname' in order_details or 'phonenumber' in order_details or 'address' in order_details):
+        return Response({'error': 'firstname, lastname, phonenumber, address: Обязательное поле.'})
+    if not order_details['firstname'] and not order_details['lastname'] and not order_details['phonenumber'] and not order_details['address']:
+        return Response({'error': 'firstname, lastname, phonenumber, address: Это поле не может быть пустым.'})
+    if not isinstance(order_details['firstname'], str):
+        return Response({'error': 'firstname: Not a valid string.'})
+    if not order_details['phonenumber']:
+        return Response({'error': 'phonenumber: Это поле не может быть пустым.'})
+    if not order_details['firstname']:
+        return Response({'error': 'firstname: Это поле не может быть пустым.'})
+
+    number = PhoneNumber.from_string(order_details['phonenumber'])
+    if not number.is_valid():
+        return Response({'error': 'phonenumber: Введен некорректный номер телефона.'})
+
+    for product_id in [product['product'] for product in order_details['products']]:
+        try:
+            product = get_object_or_404(Product, id=product_id)
+        except Exception:
+            return Response({'error': f'products: Недопустимый первичный ключ {product_id}'})
+
     order, created = Order.objects.get_or_create(
         phone_number=order_details['phonenumber'],
         defaults={
