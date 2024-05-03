@@ -4,8 +4,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
 from rest_framework import serializers
-from rest_framework.response import Response
 
 from .models import Order, OrderProduct, Product
 
@@ -85,37 +86,46 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    products = OrderProductSerializer(many=True, allow_empty=False)
+    id = serializers.IntegerField(read_only=True)
+    products = OrderProductSerializer(
+        many=True,
+        allow_empty=False,
+        write_only=True
+    )
 
     class Meta:
         model = Order
         fields = '__all__'
 
+    def create(self, validated_data):
+        order, created = Order.objects.get_or_create(
+            phonenumber=validated_data['phonenumber'],
+            defaults={
+                'firstname': validated_data['firstname'],
+                'lastname': validated_data['lastname'],
+                'address': validated_data['address']
+            }
+        )
+        if created:
+            logging.info(f'Order {order.id} is created')
+            products = validated_data['products']
+            for product in products:
+                product_in_order, created = OrderProduct.objects.get_or_create(
+                    product=get_object_or_404(Product, id=product['product']),
+                    order=order,
+                    amount=product['amount'],
+                )
+                if created:
+                    logging.info(
+                        f'{product_in_order.product.name} added to order '
+                        f'{product_in_order.order.id}'
+                    )
+        return order
+
 
 @api_view(['POST'])
 def register_order(request):
-    order = serializer = OrderSerializer(data=request.data)
+    serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    order, created = Order.objects.get_or_create(
-        phonenumber=serializer.validated_data['phonenumber'],
-        defaults={
-            'firstname': serializer.validated_data['firstname'],
-            'lastname': serializer.validated_data['lastname'],
-            'address': serializer.validated_data['address']
-        }
-    )
-    if created:
-        logging.info(f'Order {order.id} is created')
-        products = serializer.validated_data['products']
-        for product in products:
-            product_in_order, created = OrderProduct.objects.get_or_create(
-                product=get_object_or_404(Product, id=product['product']),
-                order=order,
-                amount=product['amount'],
-            )
-            if created:
-                logging.info(
-                    f'{product_in_order.product.name} added to order '
-                    f'{product_in_order.order.id}'
-                )
-    return Response({'order_id': order.id, })
+    serializer.save()
+    return JsonResponse(serializer.data)
