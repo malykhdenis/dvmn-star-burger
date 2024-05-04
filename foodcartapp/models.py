@@ -167,6 +167,7 @@ class OrderProduct(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)],
         blank=True,
+        null=True,
     )
 
     class Meta:

@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
@@ -95,6 +96,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
+    @transaction.atomic
     def create(self, validated_data):
         order, created = Order.objects.get_or_create(
             phonenumber=validated_data['phonenumber'],
@@ -107,11 +109,15 @@ class OrderSerializer(serializers.ModelSerializer):
         if created:
             logging.info(f'Order {order.id} is created')
             products = validated_data['products']
-            for product in products:
+            for product_details in products:
+                product = get_object_or_404(
+                    Product, id=product_details['product']
+                )
                 product_in_order, created = OrderProduct.objects.get_or_create(
-                    product=get_object_or_404(Product, id=product['product']),
+                    product=product,
                     order=order,
-                    amount=product['amount'],
+                    amount=product_details['amount'],
+                    price=product_details.get('price', product.price)
                 )
                 if created:
                     logging.info(
