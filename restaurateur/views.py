@@ -96,7 +96,7 @@ def view_orders(request):
     return render(request, template_name='order_items.html', context={
         'order_items': Order.objects.all().annotate(
             total_price=Sum(
-                F('products_inside__product__price') * F('products_inside__amount')
+                F('products_inside__price') * F('products_inside__amount')
             )
         ),
     })
