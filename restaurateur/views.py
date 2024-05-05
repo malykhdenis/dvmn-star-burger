@@ -98,5 +98,5 @@ def view_orders(request):
             total_price=Sum(
                 F('products_inside__price') * F('products_inside__amount')
             )
-        ),
+        ).order_by('status'),
     })

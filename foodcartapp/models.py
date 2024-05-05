@@ -127,10 +127,10 @@ class RestaurantMenuItem(models.Model):
 
 class Order(models.Model):
     ORDER_STATUS = [
-        ('manager', 'Обработка заказа'),
-        ('coocking', 'Приготовление заказа'),
-        ('delivery', 'Доставка заказа'),
-        ('ready', 'Готово'),
+        ('1_manager', 'Обработка заказа'),
+        ('2_coocking', 'Приготовление заказа'),
+        ('3_delivery', 'Доставка заказа'),
+        ('4_ready', 'Готово'),
     ]
     PAYMENT = [
         ('online', 'Онлайн на сайте'),
