@@ -132,6 +132,11 @@ class Order(models.Model):
         ('delivery', 'Доставка заказа'),
         ('ready', 'Готово'),
     ]
+    PAYMENT = [
+        ('online', 'Онлайн на сайте'),
+        ('card', 'Картой курьеру'),
+        ('cash', 'Наличными курьеру'),
+    ]
     firstname = models.CharField('Имя', max_length=50)
     lastname = models.CharField('Фамилия', max_length=50, blank=True)
     phonenumber = PhoneNumberField(region='RU')
@@ -158,6 +163,12 @@ class Order(models.Model):
         db_index=True)
     called_at = models.DateTimeField('Время звонка', blank=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True)
+    payment = models.CharField(
+        'Способ оплаты',
+        max_length=100,
+        choices=PAYMENT,
+        db_index=True,
+    )
 
     class Meta:
         verbose_name = 'Заказ'
