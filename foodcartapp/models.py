@@ -125,6 +125,12 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    ORDER_STATUS = [
+        ('manager', 'Обработка заказа'),
+        ('coocking', 'Приготовление заказа'),
+        ('delivery', 'Доставка заказа'),
+        ('ready', 'Готово'),
+    ]
     firstname = models.CharField('Имя', max_length=50)
     lastname = models.CharField('Фамилия', max_length=50, blank=True)
     phonenumber = PhoneNumberField(region='RU')
@@ -133,6 +139,11 @@ class Order(models.Model):
         Product,
         through='OrderProduct',
         db_index=True,
+    )
+    status = models.CharField(
+        'Статус заказа',
+        max_length=100,
+        choices=ORDER_STATUS,
     )
 
     class Meta:
