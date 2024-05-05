@@ -13,7 +13,18 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='status',
-            field=models.CharField(choices=[('manager', 'Обработка заказа'), ('coocking', 'Приготовление заказа'), ('delivery', 'Доставка заказа'), ('ready', 'Готово')], default='manager', max_length=100, verbose_name='Статус заказа'),
+            field=models.CharField(
+                choices=[
+                    ('manager', 'Обработка заказа'),
+                    ('coocking', 'Приготовление заказа'),
+                    ('delivery', 'Доставка заказа'),
+                    ('ready', 'Готово'),
+                ],
+                default='manager',
+                db_index=True,
+                max_length=100,
+                verbose_name='Статус заказа',
+            ),
             preserve_default=False,
         ),
     ]

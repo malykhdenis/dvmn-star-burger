@@ -144,6 +144,7 @@ class Order(models.Model):
         'Статус заказа',
         max_length=100,
         choices=ORDER_STATUS,
+        db_index=True,
     )
 
     class Meta:
