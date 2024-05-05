@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='called_at',
-            field=models.DateTimeField(blank=True, default=django.utils.timezone.now, verbose_name='Время звонка'),
+            field=models.DateTimeField(blank=True, db_index=True, default=django.utils.timezone.now, verbose_name='Время звонка'),
             preserve_default=False,
         ),
         migrations.AddField(

@@ -152,7 +152,10 @@ class Order(models.Model):
         blank=True,
         help_text='Комментарий к заказу',
     )
-    registrated_at = models.DateTimeField('Зарегестрирован', default=timezone.now)
+    registrated_at = models.DateTimeField(
+        'Зарегестрирован',
+        default=timezone.now,
+        db_index=True)
     called_at = models.DateTimeField('Время звонка', blank=True)
     delivered_at = models.DateTimeField('Время доставки', blank=True)
 
