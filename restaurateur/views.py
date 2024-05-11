@@ -1,5 +1,4 @@
 from django import forms
-from django.db.models import F, Sum
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -71,17 +70,30 @@ def view_products(request):
 
     products_with_restaurant_availability = []
     for product in products:
-        availability = {item.restaurant_id: item.availability for item in product.menu_items.all()}
-        ordered_availability = [availability.get(restaurant.id, False) for restaurant in restaurants]
+        availability = {
+            item.restaurant_id: item.availability
+            for item
+            in product.menu_items.all()
+        }
+        ordered_availability = [
+            availability.get(restaurant.id, False)
+            for restaurant
+            in restaurants
+        ]
 
         products_with_restaurant_availability.append(
             (product, ordered_availability)
         )
 
-    return render(request, template_name="products_list.html", context={
-        'products_with_restaurant_availability': products_with_restaurant_availability,
-        'restaurants': restaurants,
-    })
+    return render(
+        request,
+        template_name="products_list.html",
+        context={
+            'products_with_restaurant_availability':
+                products_with_restaurant_availability,
+            'restaurants': restaurants,
+        }
+    )
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
@@ -93,10 +105,35 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    return render(request, template_name='order_items.html', context={
-        'order_items': Order.objects.exclude(status='ready').annotate(
-            total_price=Sum(
-                F('products_inside__price') * F('products_inside__amount')
+    orders = Order.objects.in_process().add_total_price().order_by('status')
+    order_restaurants = list()
+
+    for order in orders:
+        available_restaurants = set()
+        products = [
+            order_product.product
+            for order_product
+            in order.products_inside.all()
+        ]
+        for product in products:
+            product_restaurants = [
+                item.restaurant
+                for item
+                in product.menu_items.filter(availability=True)
+            ]
+        if not available_restaurants:
+            available_restaurants = set(product_restaurants)
+        else:
+            available_restaurants = available_restaurants & set(
+                product_restaurants
             )
-        ).order_by('status'),
-    })
+
+    order_restaurants.append((order, available_restaurants))
+
+    return render(
+        request,
+        template_name='order_items.html',
+        context={
+            'order_items': order_restaurants,
+        }
+    )

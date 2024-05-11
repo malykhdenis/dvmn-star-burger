@@ -134,6 +134,9 @@ class OrderAdmin(admin.ModelAdmin):
 
     def response_post_save_change(self, request, obj):
         res = super().response_post_save_change(request, obj)
+        if obj.restaurant and obj.status == '1_manager':
+            obj.status = '2_cooking'
+            obj.save()
         if "next" in request.GET:
             redirect_url = request.GET['next']
             if url_has_allowed_host_and_scheme(

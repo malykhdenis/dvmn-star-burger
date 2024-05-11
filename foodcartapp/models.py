@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F, Sum
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
@@ -125,10 +126,22 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderQuerySet(models.QuerySet):
+    def in_process(self):
+        return self.exclude(status='4_ready')
+
+    def add_total_price(self):
+        return self.annotate(
+            total_price=Sum(
+                F('products_inside__price') * F('products_inside__amount')
+            )
+        )
+
+
 class Order(models.Model):
     ORDER_STATUS = [
         ('1_manager', 'Обработка заказа'),
-        ('2_coocking', 'Приготовление заказа'),
+        ('2_cooking', 'Приготовление заказа'),
         ('3_delivery', 'Доставка заказа'),
         ('4_ready', 'Готово'),
     ]
@@ -161,14 +174,32 @@ class Order(models.Model):
         'Зарегестрирован',
         default=timezone.now,
         db_index=True)
-    called_at = models.DateTimeField('Время звонка', blank=True)
-    delivered_at = models.DateTimeField('Время доставки', blank=True)
+    called_at = models.DateTimeField(
+        'Время звонка',
+        blank=True,
+        null=True,
+    )
+    delivered_at = models.DateTimeField(
+        'Время доставки',
+        blank=True,
+        null=True,
+    )
     payment = models.CharField(
         'Способ оплаты',
         max_length=100,
         choices=PAYMENT,
         db_index=True,
     )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        related_name='order',
+        verbose_name='Где будет готовиться',
+        blank=True,
+        null=True,
+    )
+
+    objects = OrderQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'Заказ'
