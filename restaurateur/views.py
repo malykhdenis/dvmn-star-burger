@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from django import forms
 from django.shortcuts import redirect, render
@@ -10,10 +12,16 @@ from environs import Env
 from geopy import distance
 
 from foodcartapp.models import Order, Product, Restaurant
+from geocode.models import GeoCode
 
 
 env = Env()
 env.read_env()
+
+logging.basicConfig(
+    format="%(process)d %(levelname)s %(message)s",
+    level=logging.INFO
+)
 
 
 class Login(forms.Form):
@@ -134,24 +142,48 @@ def view_orders(request):
             )
 
         restaurants_with_distance = list()
-        client_coordinates = fetch_coordinates(
-            env.str('YANDEX_API_KEY'),
-            order.address,
-        )
-        for restaurant in available_restaurants:
-            restaurant_coordinates = fetch_coordinates(
+        if not order.geo or not GeoCode.objects.filter(address=order.address):
+            order_lon, order_lat = fetch_coordinates(
                 env.str('YANDEX_API_KEY'),
-                restaurant.address,
+                order.address,
             )
+            if order_lat and order_lon:
+                geo, created = GeoCode.objects.get_or_create(
+                    address=order.address,
+                    lon=order_lon,
+                    lat=order_lat,
+                )
+                if created:
+                    logging.info(f'Geo for order {order.id} created.')
+                    order.geo = geo
+                    order.save()
+        for restaurant in available_restaurants:
+            if not restaurant.geo:
+                restaurant_lon, restaurant_lat = fetch_coordinates(
+                    env.str('YANDEX_API_KEY'),
+                    restaurant.address,
+                )
+                if restaurant_lon and restaurant_lat:
+                    geo, created = GeoCode.objects.get_or_create(
+                        address=restaurant.address,
+                        lon=restaurant_lon,
+                        lat=restaurant_lat,
+                    )
+                    if created:
+                        logging.info(
+                            f'Geo for restaurant {restaurant.name} created.',
+                        )
+                        restaurant.geo = geo
+                        restaurant.save()
             try:
                 distance = str(round(
                     get_distance(
-                        client_coordinates,
-                        restaurant_coordinates,
+                        (order.geo.lon, order.geo.lat),
+                        (restaurant.geo.lon, restaurant.geo.lat),
                     ),
                     3,
                 )) + 'км'
-            except ValueError:
+            except Exception:
                 distance = 'Ошибка определения координат'
             restaurants_with_distance.append((restaurant, distance))
 
@@ -176,7 +208,8 @@ def fetch_coordinates(apikey, address):
         "format": "json",
     })
     response.raise_for_status()
-    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+    found_places = response.json()['response']['GeoObjectCollection'][
+        'featureMember']
 
     if not found_places:
         return None
@@ -188,5 +221,5 @@ def fetch_coordinates(apikey, address):
 
 def get_distance(client_coordinates, restaurant_coordinates):
     if not client_coordinates or not restaurant_coordinates:
-        raise ValueError('Ошибка определения координат')
+        raise Exception('Ошибка определения координат')
     return distance.distance(client_coordinates, restaurant_coordinates).km

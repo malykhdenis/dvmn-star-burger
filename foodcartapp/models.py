@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
+from geocode.models import GeoCode
+
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -19,6 +21,13 @@ class Restaurant(models.Model):
         'контактный телефон',
         max_length=50,
         blank=True,
+    )
+    geo = models.OneToOneField(
+        GeoCode,
+        on_delete=models.SET_NULL,
+        related_name='restaurant',
+        blank=True,
+        null=True,
     )
 
     class Meta:
@@ -195,6 +204,13 @@ class Order(models.Model):
         on_delete=models.CASCADE,
         related_name='order',
         verbose_name='Где будет готовиться',
+        blank=True,
+        null=True,
+    )
+    geo = models.OneToOneField(
+        GeoCode,
+        on_delete=models.SET_NULL,
+        related_name='order',
         blank=True,
         null=True,
     )

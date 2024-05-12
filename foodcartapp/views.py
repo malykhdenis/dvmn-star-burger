@@ -4,11 +4,18 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
+from environs import Env
 from rest_framework.decorators import api_view
 from rest_framework import serializers
 
-from .models import Order, OrderProduct, Product
+from geocode.models import GeoCode
 
+from .models import Order, OrderProduct, Product
+from restaurateur.views import fetch_coordinates
+
+
+env = Env()
+env.read_env()
 
 logging.basicConfig(
     format="%(process)d %(levelname)s %(message)s",
@@ -124,6 +131,22 @@ class OrderSerializer(serializers.ModelSerializer):
                         f'{product_in_order.product.name} added to order '
                         f'{product_in_order.order.id}'
                     )
+
+        order_lon, order_lat = fetch_coordinates(
+            env.str('YANDEX_API_KEY'),
+            order.address,
+        )
+        geo, created = GeoCode.objects.get_or_create(
+            address=order.address,
+            lon=order_lon,
+            lat=order_lat,
+        )
+        if created:
+            logging.info(f'Geo for order {order.id} created.')
+
+        order.geo = geo
+        order.save()
+
         return order
 
 
