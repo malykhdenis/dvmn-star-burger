@@ -143,38 +143,10 @@ def view_orders(request):
 
         restaurants_with_distance = list()
         if not order.geo or not GeoCode.objects.filter(address=order.address):
-            order_lon, order_lat = fetch_coordinates(
-                env.str('YANDEX_API_KEY'),
-                order.address,
-            )
-            if order_lat and order_lon:
-                geo, created = GeoCode.objects.get_or_create(
-                    address=order.address,
-                    lon=order_lon,
-                    lat=order_lat,
-                )
-                if created:
-                    logging.info(f'Geo for order {order.id} created.')
-                    order.geo = geo
-                    order.save()
+            create_geo(order)
         for restaurant in available_restaurants:
             if not restaurant.geo:
-                restaurant_lon, restaurant_lat = fetch_coordinates(
-                    env.str('YANDEX_API_KEY'),
-                    restaurant.address,
-                )
-                if restaurant_lon and restaurant_lat:
-                    geo, created = GeoCode.objects.get_or_create(
-                        address=restaurant.address,
-                        lon=restaurant_lon,
-                        lat=restaurant_lat,
-                    )
-                    if created:
-                        logging.info(
-                            f'Geo for restaurant {restaurant.name} created.',
-                        )
-                        restaurant.geo = geo
-                        restaurant.save()
+                create_geo(restaurant)
             try:
                 distance = str(round(
                     get_distance(
@@ -223,3 +195,21 @@ def get_distance(client_coordinates, restaurant_coordinates):
     if not client_coordinates or not restaurant_coordinates:
         raise Exception('Ошибка определения координат')
     return distance.distance(client_coordinates, restaurant_coordinates).km
+
+
+def create_geo(place):
+    """Create GeoCode object for place."""
+    lon, lat = fetch_coordinates(
+        env.str('YANDEX_API_KEY'),
+        place.address,
+    )
+    if lat and lon:
+        geo, created = GeoCode.objects.get_or_create(
+            address=place.address,
+            lon=lon,
+            lat=lat,
+        )
+        if created:
+            logging.info(f'Geo for order {place.address} created.')
+            place.geo = geo
+            place.save()
