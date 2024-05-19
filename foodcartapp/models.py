@@ -241,7 +241,7 @@ class OrderProduct(models.Model):
     amount = models.SmallIntegerField(
         'Количество',
         default=1,
-        validators=[MinValueValidator(0),],
+        validators=[MinValueValidator(1),],
     )
     price = models.DecimalField(
         'цена',
