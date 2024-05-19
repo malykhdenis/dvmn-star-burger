@@ -142,13 +142,11 @@ class OrderAdmin(admin.ModelAdmin):
         if obj.restaurant and obj.status == '1_manager':
             obj.status = '2_cooking'
             obj.save()
-        if "next" in request.GET:
-            redirect_url = request.GET['next']
-            if url_has_allowed_host_and_scheme(
-                redirect_url,
-                allowed_hosts=['localhost'],
-            ):
-                return HttpResponseRedirect(redirect_url)
+        if "next" in request.GET and url_has_allowed_host_and_scheme(
+            request.GET['next'],
+            allowed_hosts=['localhost'],
+        ):
+            return HttpResponseRedirect(request.GET['next'])
         else:
             return res
 
