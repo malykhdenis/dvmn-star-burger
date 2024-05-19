@@ -24,7 +24,6 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)
     products = OrderProductSerializer(
         many=True,
         allow_empty=False,
@@ -34,6 +33,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+        extra_fields = ['id',]
 
     @transaction.atomic
     def create(self, validated_data):
