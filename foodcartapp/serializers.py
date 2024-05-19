@@ -15,19 +15,12 @@ env.read_env()
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
-    product = serializers.IntegerField(min_value=1)
+    product = serializers.PrimaryKeyRelatedField(read_only=True)
     quantity = serializers.IntegerField(source='amount', min_value=1)
 
     class Meta:
         model = OrderProduct
         fields = ['product', 'quantity']
-
-    def validate_product(self, value):
-        if not Product.objects.filter(id=value).exists():
-            raise serializers.ValidationError(
-                f'product_id: нет продукта с id = {value}.'
-            )
-        return value
 
 
 class OrderSerializer(serializers.ModelSerializer):
