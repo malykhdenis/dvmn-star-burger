@@ -86,12 +86,6 @@ MEDIA_URL = '/media/'
 
 DATABASES = {'default': env.dj_db_url('POSTGRESQL_DB_URL')}
 
-# DATABASES = {
-#    'default': dj_database_url.config(
-#        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
-#    )
-# }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -134,3 +128,4 @@ ROLLBAR = {
     'environment': Repo(path=BASE_DIR).active_branch.name,
     'root': BASE_DIR,
 }
+
