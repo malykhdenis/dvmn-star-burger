@@ -93,7 +93,6 @@ def view_products(request):
             for restaurant
             in restaurants
         ]
-
         products_with_restaurant_availability.append(
             (product, ordered_availability)
         )

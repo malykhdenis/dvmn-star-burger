@@ -2,6 +2,7 @@ import os
 
 import dj_database_url
 from environs import Env
+from git import Repo
 
 
 env = Env()
@@ -40,6 +41,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
 
 ROOT_URLCONF = 'star_burger.urls'
@@ -82,11 +84,13 @@ WSGI_APPLICATION = 'star_burger.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
-    )
-}
+DATABASES = {'default': env.dj_db_url('POSTGRESQL_DB_URL')}
+
+# DATABASES = {
+#    'default': dj_database_url.config(
+#        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
+#    )
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -124,3 +128,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "assets"),
     os.path.join(BASE_DIR, "bundles"),
 ]
+
+ROLLBAR = {
+    'access_token': env.str('ROLLBAR_ACCESS_TOKEN'),
+    'environment': Repo(path=BASE_DIR).active_branch.name,
+    'root': BASE_DIR,
+}
