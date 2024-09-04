@@ -156,7 +156,7 @@ Parcel будет следить за файлами в каталоге `bundle
 Для обновления кода запустите bash-скрипт в домашней дирректории:
 
 ```bash
-./deploy_star_burger.sh
+./deploy_star_burger.sh <rollbar_access_token>
 ```
 
 ## Цели проекта
