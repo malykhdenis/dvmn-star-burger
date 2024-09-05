@@ -160,6 +160,7 @@ Parcel будет следить за файлами в каталоге `bundle
 Для обновления кода запустите bash-скрипт в домашней дирректории:
 
 ```bash
+. ../opt/dvmn_star_burger/venv/bin/activate
 ./deploy_star_burger.sh <rollbar_access_token>
 ```
 
