@@ -1,4 +1,4 @@
-[ссылка на сайт](https://malykh.sytes.net/)
+Ссылка на сайт - https://malykhdenis.sytes.net/
 # Сайт доставки еды Star Burger
 
 Это сайт сети ресторанов Star Burger. Здесь можно заказать превосходные бургеры с доставкой на дом.
@@ -160,7 +160,7 @@ Parcel будет следить за файлами в каталоге `bundle
 Для обновления кода запустите bash-скрипт в домашней дирректории:
 
 ```bash
-./deploy_star_burger.sh
+./deploy_star_burger.sh <rollbar_access_token>
 ```
 
 ## Цели проекта
