@@ -124,7 +124,7 @@ STATICFILES_DIRS = [
 ]
 
 ROLLBAR = {
-    'access_token': env.str('ROLLBAR_ACCESS_TOKEN'),
+    'access_token': env.str('ROLLBAR_ACCESS_TOKEN', 'default_rollbar_access_token'),
     'environment': Repo(path=BASE_DIR).active_branch.name,
     'root': BASE_DIR,
 }
