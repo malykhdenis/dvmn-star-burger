@@ -128,4 +128,3 @@ ROLLBAR = {
     'environment': Repo(path=BASE_DIR).active_branch.name,
     'root': BASE_DIR,
 }
-
