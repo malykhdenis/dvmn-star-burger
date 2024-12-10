@@ -188,3 +188,36 @@ Parcel будет следить за файлами в каталоге `bundle
 docker compose up
 ```
 Сайт будет доступен по адресу http://127.0.0.1:8000
+
+## Деплой проекта на сервер
+
+1. Перейти в дирректорию `opt/`.
+```
+cd ../opt/
+```
+
+2. Клонировать репозиторий с проектом.
+```
+git clone https://github.com/malykhdenis/dvmn-star-burger.git
+```
+
+3. Перейти в дирректорию с проектом.
+```
+cd dvmn-star-burger/
+```
+
+4. Создать файл `.env` с переменными окружения
+```
+SECRET_KEY=<django secret key>
+YANDEX_API_KEY=<yandex api key>
+PG_USER=<postresql database user>
+PG_PASSWORD=<postresql database password>
+PG_DB=<postresql database name>
+ALLOWED_HOSTS=<allowed hosts>
+ROLLBAR_ACCESS_TOKEN=<rollbar access token>
+```
+
+5. Создать и запустить контейнеры с проектом.
+```
+docker-compose -f docker-compose.prod.yaml up
+```
