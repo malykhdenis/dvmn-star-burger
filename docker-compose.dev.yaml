@@ -16,9 +16,9 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile-dev
+      dockerfile: Dockerfile
     volumes:
-        - media:/usr/src/app/media
+        - media:/usr/src/app/backend/media
     environment:
       SECRET_KEY: "${SECRET_KEY:-secret_key}"
       DEBUG: "${DEBUG:-true}"
@@ -29,7 +29,7 @@ services:
     depends_on:
       pg_db:
         condition: service_healthy
-    command: ["sh", "-c", "pip3 install -r requirements.txt && python3 manage.py collectstatic --no-input && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"]
+    command: ["sh", "-c", "pip3 install -r ../requirements.txt && python3 manage.py collectstatic --no-input && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"]
 
 volumes:
   db_data:

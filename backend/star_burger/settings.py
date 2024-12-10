@@ -8,8 +8,9 @@ from git import Repo
 env = Env()
 env.read_env()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+STATIC_ROOT = os.path.join(BASE_DIR, 'backend', 'staticfiles')
 
 
 SECRET_KEY = env('SECRET_KEY')
@@ -65,7 +66,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, "templates"),
+            os.path.join(BASE_DIR, "frontend/templates"),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -119,12 +120,15 @@ INTERNAL_IPS = [
 
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "assets"),
-    os.path.join(BASE_DIR, "bundles"),
+    os.path.join(BASE_DIR, "frontend/assets"),
+    os.path.join(BASE_DIR, "frontend/bundles"),
 ]
 
 ROLLBAR = {
-    'access_token': env.str('ROLLBAR_ACCESS_TOKEN', 'default_rollbar_access_token'),
+    'access_token': env.str(
+        'ROLLBAR_ACCESS_TOKEN',
+        'default_rollbar_access_token',
+    ),
     'environment': Repo(path=BASE_DIR).active_branch.name,
     'root': BASE_DIR,
 }
