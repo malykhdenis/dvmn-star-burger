@@ -16,12 +16,12 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile-dev
+      dockerfile: Dockerfile-prod
     volumes:
         - media:/usr/src/app/media
     environment:
       SECRET_KEY: "${SECRET_KEY:-secret_key}"
-      DEBUG: "${DEBUG:-true}"
+      DEBUG: "false"
       DATABASE_URL: "${POSTGRESQL_DB_URL:-postgres://admin:123@localhost:5432/starburger_db}"
       YANDEX_API_KEY: "${YANDEX_API_KEY:-yandex_api_key}"
     ports:
