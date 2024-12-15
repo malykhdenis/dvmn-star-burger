@@ -10,11 +10,11 @@ environs==9.3.2
 gunicorn
 geographiclib==2.0
 geopy
-GitPython
+GitPython==3.1.24
 marshmallow==3.19.0
 phonenumbers==8.13.37
 phonenumberslite==8.13.37
-pillow~=9.5.0
+pillow
 psycopg2-binary
 requests~=2.31.0
 rollbar~=1.0.0

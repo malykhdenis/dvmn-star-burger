@@ -1,16 +1,15 @@
 import os
 
-import dj_database_url
 from environs import Env
-from git import Repo
+# os.environ["GIT_PYTHON_REFRESH"] = "quiet"
+# from git import Repo
 
 
 env = Env()
 env.read_env()
 
-BASE_DIR = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-STATIC_ROOT = os.path.join(BASE_DIR, 'backend', 'staticfiles')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 SECRET_KEY = env('SECRET_KEY')
@@ -66,7 +65,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, "frontend/templates"),
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -120,15 +119,15 @@ INTERNAL_IPS = [
 
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "frontend/assets"),
-    os.path.join(BASE_DIR, "frontend/bundles"),
+    os.path.join(BASE_DIR, "assets"),
+    os.path.join(BASE_DIR, "static"),
 ]
 
-ROLLBAR = {
-    'access_token': env.str(
-        'ROLLBAR_ACCESS_TOKEN',
-        'default_rollbar_access_token',
-    ),
-    'environment': Repo(path=BASE_DIR).active_branch.name,
-    'root': BASE_DIR,
-}
+# ROLLBAR = {
+#     'access_token': env.str(
+#         'ROLLBAR_ACCESS_TOKEN',
+#         'default_rollbar_access_token',
+#     ),
+#     'environment': Repo(path=os.path.dirname(BASE_DIR)).active_branch.name,
+#     'root': BASE_DIR,
+# }
