@@ -1,5 +1,6 @@
-erver {
+server {
   listen 80 default;
+  server_name star-burger.sytes.net;
 
   location / {
         include '/etc/nginx/proxy_params';
