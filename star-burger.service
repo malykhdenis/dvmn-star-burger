@@ -1,0 +1,13 @@
+[Unit]
+Description=Star Burger Docker
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/dvmn-star-burger/
+ExecStart=docker-compose -f docker-compose.prod.yaml up
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

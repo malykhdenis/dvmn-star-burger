@@ -23,18 +23,18 @@ services:
       dockerfile: Dockerfile-backend
     volumes:
         - /var/www/media:/usr/src/app/media
-        - /var/www/static:/usr/src/app/static
+        - /var/www/static:/usr/src/app/staticfiles
     environment:
       SECRET_KEY: "${SECRET_KEY:-secret_key}"
       DEBUG: "false"
       DATABASE_URL: "${POSTGRESQL_DB_URL:-postgres://admin:123@localhost:5432/starburger_db}"
       YANDEX_API_KEY: "${YANDEX_API_KEY:-yandex_api_key}"
     ports:
-      - 80:8000
+      - 8000:8000
     depends_on:
       pg_db:
         condition: service_healthy
-    command: ["sh", "-c", "pip3 install -r requirements.txt && python3 manage.py collectstatic --no-input && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"]
+    command: ["sh", "-c", "pip3 install -r requirements.txt && python3 manage.py collectstatic --no-input && python3 manage.py migrate && gunicorn -b 0.0.0.0:8000 -w 3 star_burger.wsgi:application"]
   
   frontend:
     build:
