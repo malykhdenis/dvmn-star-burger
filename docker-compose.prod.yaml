@@ -1,4 +1,5 @@
 services:
+
   pg_db:
     image: postgres:12.0-alpine
     environment:
@@ -13,12 +14,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    depends_on:
+      - frontend
+
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-backend
     volumes:
-        - media:/usr/src/app/backend/media
+        - /var/www/media:/usr/src/app/media
+        - /var/www/static:/usr/src/app/static
     environment:
       SECRET_KEY: "${SECRET_KEY:-secret_key}"
       DEBUG: "false"
@@ -29,8 +34,17 @@ services:
     depends_on:
       pg_db:
         condition: service_healthy
-    command: ["sh", "-c", "pip3 install -r ../requirements.txt && python3 manage.py collectstatic --no-input && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"]
+    command: ["sh", "-c", "pip3 install -r requirements.txt && python3 manage.py collectstatic --no-input && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"]
+  
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile-frontend
+    command: >
+      bash -c 'npm ci --dev
+      && ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"'
+    volumes:
+      - /var/www/static:/frontend/bundles/
 
 volumes:
   db_data:
-  media:
